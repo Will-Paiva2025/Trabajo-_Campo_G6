@@ -44,9 +44,4 @@ public class Producto {
 	public void setStock(int stock) {
 		Stock = stock;
 	}
-	public void DescontrarStock(int cantidad) {
-        if (Stock >= cantidad) {
-            Stock -= cantidad;
-        }
-}
 }
