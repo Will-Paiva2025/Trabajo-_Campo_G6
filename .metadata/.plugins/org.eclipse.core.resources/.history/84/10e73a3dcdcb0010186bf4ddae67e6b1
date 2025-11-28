@@ -1,0 +1,77 @@
+package GUI;
+
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+import java.awt.BorderLayout;
+import javax.swing.JLabel;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.JTabbedPane;
+
+public class MenuPrincipal extends JFrame {
+
+	private static final long serialVersionUID = 1L;
+	private JPanel contentPane;
+	private JLabel lblUsuario;
+	private JTabbedPane tabs;
+	/**
+	 * Create the frame.
+	 */
+	private String usuario;
+	public MenuPrincipal(String usuario) {
+		this.usuario=usuario;
+		setResizable(false);
+		setTitle("Sistema de Inventario - Bodega");
+        setSize(800, 600);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		contentPane = new JPanel();
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		setContentPane(contentPane);
+		contentPane.setLayout(new BorderLayout(0, 0));
+		
+		lblUsuario = new JLabel("Usuario:");
+		lblUsuario.setHorizontalAlignment(SwingConstants.RIGHT);
+		contentPane.add(lblUsuario, BorderLayout.NORTH);
+		
+		tabs = new JTabbedPane(JTabbedPane.TOP);
+		contentPane.add(tabs, BorderLayout.CENTER);
+
+		PanelInventario panelInventario = new PanelInventario(usuario);
+		ConsultarNombre panelConsultaNombre = new ConsultarNombre();
+		ConsultarCategoria panelConsultaCategoria = new ConsultarCategoria();
+		PanelHistorial panelHistorial = new PanelHistorial(usuario);
+		PanelBoleta panelBoleta = new PanelBoleta(usuario);
+
+		tabs.addTab("Inventario", panelInventario);
+		tabs.addTab("Boletas", panelBoleta);
+		tabs.addTab("Consultar por nombre", panelConsultaNombre);
+		tabs.addTab("Consultar por categoría", panelConsultaCategoria);
+		tabs.addTab("Historial", panelHistorial);
+		
+		 if (usuario.equalsIgnoreCase("admin")) {
+	            tabs.addTab("Usuarios", new PanelUsuarios());
+	        }
+		 
+		 tabs.addChangeListener(new ChangeListener() {
+	            @Override
+	            public void stateChanged(ChangeEvent e) {
+	                if (tabs.getSelectedComponent() == panelConsultaCategoria) {
+	                    panelConsultaCategoria.recargar();
+	                } else if (tabs.getSelectedComponent() == panelHistorial) {
+	                    panelHistorial.recargar();
+	                }
+	            }
+	        });
+
+	        getContentPane().add(tabs, BorderLayout.CENTER);
+	}
+
+	public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new MenuPrincipal("admin").setVisible(true));
+    }
+}

@@ -1,0 +1,10 @@
+package Clases;
+
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+public class PanelBuscarCodigo extends JPanel{
+public PanelBuscarCodigo() {
+	add(new JLabel("Aquí se buscará por código"));
+}
+}

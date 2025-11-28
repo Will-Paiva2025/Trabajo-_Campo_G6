@@ -1,0 +1,143 @@
+package GUI;
+
+import java.awt.BorderLayout;
+import java.awt.EventQueue;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+
+public class Login extends JFrame {
+
+	private static final long serialVersionUID = 1L;
+	private JPanel contentPane;
+    private JTextField txtUsuario;
+    private JPasswordField txtPassword;
+    private JLabel lblIntentos;
+    private int intentos = 3;
+
+	/**
+	 * Launch the application.
+	 */
+	
+	/**
+	 * Create the frame.
+	 */
+    public Login() {
+        setTitle("Inicio de Sesión - Sistema de Inventario");
+        setSize(400, 250);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setResizable(false);
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        JLabel lblTitulo = new JLabel("INICIO DE SESIÓN", JLabel.CENTER);
+        lblTitulo.setFont(new Font("Arial", Font.BOLD, 18));
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        panel.add(lblTitulo, gbc);
+
+        JLabel lblUsuario = new JLabel("Usuario:");
+        gbc.gridy = 1;
+        gbc.gridwidth = 1;
+        panel.add(lblUsuario, gbc);
+
+        txtUsuario = new JTextField();
+        gbc.gridx = 1;
+        panel.add(txtUsuario, gbc);
+
+        JLabel lblPassword = new JLabel("Contraseña:");
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        panel.add(lblPassword, gbc);
+
+        txtPassword = new JPasswordField();
+        gbc.gridx = 1;
+        panel.add(txtPassword, gbc);
+
+        lblIntentos = new JLabel("Intentos restantes: 3");
+        lblIntentos.setForeground(Color.RED);
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        panel.add(lblIntentos, gbc);
+
+        JButton btnIngresar = new JButton("Ingresar");
+        gbc.gridy = 4;
+        panel.add(btnIngresar, gbc);
+
+        add(panel);
+
+        btnIngresar.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                validarLogin();
+            }
+        });
+    }
+
+    private void validarLogin() {
+        String usuario = txtUsuario.getText();
+        String clave = String.valueOf(txtPassword.getPassword());
+
+        if (usuario.isEmpty() || clave.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Debe ingresar usuario y contraseña");
+            return;
+        }
+
+        if (validarUsuarioBD(usuario, clave)) {
+
+
+            // Aquí abrirás la ventana principal
+            if (validarUsuarioBD(usuario, clave)) {
+                JOptionPane.showMessageDialog(this, "BIENVENIDO");
+                new MenuPrincipal().setVisible(true);
+                this.dispose();
+            }
+
+            this.dispose();
+        } else {
+            intentos--;
+            lblIntentos.setText("Intentos restantes: " + intentos);
+
+            if (intentos == 0) {
+                JOptionPane.showMessageDialog(this, "Demasiados intentos fallidos");
+                System.exit(0);
+            }
+        }
+    }
+
+    private boolean validarUsuarioBD(String usuario, String clave) {
+        String sql = "SELECT * FROM usuarios WHERE usuario=? AND clave=?";
+
+        try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost/BD_BODEGA_2025", "root", "TheBoss9933#");
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, usuario);
+            ps.setString(2, clave);
+
+            ResultSet rs = ps.executeQuery();
+
+            return rs.next();
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error de conexión: " + e.getMessage());
+        }
+        return false;
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new Login().setVisible(true));
+    }
+}
+

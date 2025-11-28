@@ -1,0 +1,124 @@
+package GUI;
+
+import java.awt.EventQueue;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+
+import Clases.Producto;
+import arrayList.ArrayProducto;
+
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import java.awt.event.KeyListener;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.awt.event.KeyEvent;
+
+public class ConsultarNombre extends JFrame implements KeyListener {
+
+	private static final long serialVersionUID = 1L;
+	private JPanel contentPane;
+	private JLabel lblNewLabel;
+	private JTextField txtNombre;
+	private JScrollPane scrollPane;
+	private JTable tbTable;
+
+	/**
+	 * Launch the application.
+	 */
+	public static void main(String[] args) {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					ConsultarNombre frame = new ConsultarNombre();
+					frame.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Create the frame.
+	 */
+	public ConsultarNombre() {
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setBounds(100, 100, 560, 414);
+		contentPane = new JPanel();
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		setContentPane(contentPane);
+		contentPane.setLayout(null);
+		
+		lblNewLabel = new JLabel("Nombre");
+		lblNewLabel.setBounds(26, 32, 46, 14);
+		contentPane.add(lblNewLabel);
+		
+		txtNombre = new JTextField();
+		txtNombre.addKeyListener(this);
+		txtNombre.setBounds(102, 29, 86, 20);
+		contentPane.add(txtNombre);
+		txtNombre.setColumns(10);
+		
+		scrollPane = new JScrollPane();
+		scrollPane.setBounds(10, 115, 524, 249);
+		contentPane.add(scrollPane);
+		
+		tbTable = new JTable();
+		tbTable.setFillsViewportHeight(true);
+		scrollPane.setViewportView(tbTable);
+		Listar("");
+
+	}
+	public void keyPressed(KeyEvent e) {
+	}
+	public void keyReleased(KeyEvent e) {
+		if (e.getSource() == txtNombre) {
+			do_txtNombre_keyReleased(e);
+		}
+	}
+	public void keyTyped(KeyEvent e) {
+	}
+	protected void do_txtNombre_keyReleased(KeyEvent e) {
+		String nom=txtNombre.getText();
+		Listar(nom);
+	}
+	
+	
+	public void Listar(String nom) {
+		DefaultTableModel modelo = new DefaultTableModel();
+		ArrayProducto m = new ArrayProducto();
+		ArrayList<Producto> lista = new ArrayList<Producto>();
+		if(nom.length()==0) {
+			lista = m.ListarProducto();
+		}
+		else 
+			
+			lista = m.consultarProducto(nom);
+			modelo.setRowCount(lista.size());
+			Iterator<Producto>  it = lista.iterator();
+			modelo.addColumn("Código");
+			modelo.addColumn("Nombre");
+			modelo.addColumn("Marca");
+			modelo.addColumn("Precio");
+			modelo.addColumn("Stock");
+			int i=0;
+			while(it.hasNext()) {
+				Object obj = it.next();
+				Producto produ=(Producto)obj;
+				modelo.setValueAt(produ.getCodi_prod(), i, 0);
+				modelo.setValueAt(produ.getNom_prod(), i, 1);
+				modelo.setValueAt(produ.getCategoria_prod(), i, 2);
+				modelo.setValueAt(produ.getPrecio_prod(), i, 3);
+				modelo.setValueAt(produ.getStock_prod(), i, 4);
+				i++;
+			}
+			tbTable.setModel(modelo);
+		
+	}
+}

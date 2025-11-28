@@ -1,0 +1,11 @@
+package Clases;
+
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+public class PanelEliminar extends JPanel{
+	public PanelEliminar() {
+		add(new JLabel("Aquí se eliminan productos"));
+	}
+
+}

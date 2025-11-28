@@ -1,0 +1,100 @@
+package Clases;
+
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
+
+public class PanelInventario extends JPanel{
+	   private JTable tabla;
+	    private DefaultTableModel modelo;
+	    private JButton btnCargar;
+	public PanelInventario() {
+		 setLayout(null);
+
+	        modelo = new DefaultTableModel();
+	        tabla = new JTable(modelo);
+	        JScrollPane scroll = new JScrollPane(tabla);
+	        scroll.setBounds(20, 20, 720, 360);
+	        add(scroll);
+
+	        btnCargar = new JButton("Cargar Datos");
+	        btnCargar.setBounds(20, 390, 150, 30);
+	        add(btnCargar);
+
+	        btnCargar.addActionListener(e -> cargarDatos());
+   }
+	 private void cargarDatos() {
+	        // limpia la tabla
+	        modelo.setRowCount(0);
+	        modelo.setColumnCount(0);
+
+	        // Ajusta estos datos de conexión si usas otro host/puerto/usuario/clave
+	        String url = "jdbc:mysql://localhost:3306/BD_BODEGA_2025";
+	        String user = "root";
+	        String password = "TheBoss9933#";
+
+	        try (Connection con = DriverManager.getConnection(url, user, password)) {
+
+	            // Intenta llamar al procedimiento primero (si lo creaste)
+	            // Si no tienes el SP, cámbialo por "SELECT * FROM Producto"
+	            String call = "{ CALL listar_productos() }";
+
+	            boolean usedProcedure = true;
+	            ResultSet rs = null;
+
+	            try (CallableStatement cst = con.prepareCall(call)) {
+	                rs = cst.executeQuery();
+	            } catch (SQLException eProc) {
+	                // Si falla el CALL (p.ej. no existe el SP), intenta SELECT directo
+	                usedProcedure = false;
+	            }
+
+	            if (!usedProcedure) {
+	                String sql = "SELECT * FROM Producto";
+	                try (PreparedStatement ps = con.prepareStatement(sql)) {
+	                    rs = ps.executeQuery();
+	                }
+	            }
+
+	            if (rs == null) {
+	                JOptionPane.showMessageDialog(this, "No se obtuvo ResultSet (proc o tabla faltante)");
+	                return;
+	            }
+
+	            // Construir columnas dinámicamente desde ResultSetMetaData
+	            ResultSetMetaData md = rs.getMetaData();
+	            int columnas = md.getColumnCount();
+	            for (int i = 1; i <= columnas; i++) {
+	                // usamos getColumnLabel para respetar alias si existiera
+	                modelo.addColumn(md.getColumnLabel(i));
+	            }
+
+	            // Llenar filas
+	            while (rs.next()) {
+	                Object[] fila = new Object[columnas];
+	                for (int i = 0; i < columnas; i++) {
+	                    fila[i] = rs.getObject(i + 1);
+	                }
+	                modelo.addRow(fila);
+	            }
+
+	            rs.close();
+
+	        } catch (SQLException ex) {
+	            JOptionPane.showMessageDialog(this,
+	                    "Error al conectar o cargar los datos:\n" + ex.getMessage());
+	        }
+	    }
+}

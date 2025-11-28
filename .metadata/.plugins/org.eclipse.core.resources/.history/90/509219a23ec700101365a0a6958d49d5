@@ -1,0 +1,12 @@
+package Clases;
+
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+import GUI.MenuPrincipal;
+
+public class PanelAgregar extends MenuPrincipal {
+	public PanelAgregar() {
+        add(new JLabel("Aquí se agregan productos"));
+    }
+}

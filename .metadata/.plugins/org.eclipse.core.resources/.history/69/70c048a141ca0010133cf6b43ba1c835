@@ -1,0 +1,89 @@
+package GUI;
+
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+
+import Clases.Producto;
+import arrayList.ArrayProducto;
+
+import java.awt.event.KeyListener;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.awt.event.KeyEvent;
+
+public class ConsultarCategoria extends JPanel implements KeyListener {
+
+    private static final long serialVersionUID = 1L;
+    private JLabel lblCategoria;
+    private JTextField txtCategoria;
+    private JScrollPane scrollPane;
+    private JTable tbTable;
+
+    public ConsultarCategoria() {
+        setBorder(new EmptyBorder(5, 5, 5, 5));
+        setLayout(null);
+
+        lblCategoria = new JLabel("Categoría");
+        lblCategoria.setBounds(26, 32, 80, 14);
+        add(lblCategoria);
+
+        txtCategoria = new JTextField();
+        txtCategoria.addKeyListener(this);
+        txtCategoria.setBounds(102, 29, 200, 20);
+        add(txtCategoria);
+        txtCategoria.setColumns(10);
+
+        scrollPane = new JScrollPane();
+        scrollPane.setBounds(10, 80, 524, 249);
+        add(scrollPane);
+
+        tbTable = new JTable();
+        tbTable.setFillsViewportHeight(true);
+        scrollPane.setViewportView(tbTable);
+
+        Listar("");  // listar todo al inicio
+    }
+
+    // KeyListener
+    public void keyPressed(KeyEvent e) {}
+    public void keyTyped(KeyEvent e) {}
+
+    public void keyReleased(KeyEvent e) {
+        if (e.getSource() == txtCategoria) {
+            String cat = txtCategoria.getText();
+            Listar(cat);
+        }
+    }
+
+    public void Listar(String cat) {
+        DefaultTableModel modelo = new DefaultTableModel();
+        ArrayProducto m = new ArrayProducto();
+        ArrayList<Producto> lista = new ArrayList<>();
+
+        if (cat.length() == 0) {
+            lista = m.ListarProducto();              // si está vacío, muestra todo
+        } else {
+            lista = m.consultarCategoria(cat);       // por categoría
+        }
+
+        modelo.addColumn("Código");
+        modelo.addColumn("Nombre");
+        modelo.addColumn("Categoría");
+        modelo.addColumn("Precio");
+        modelo.addColumn("Stock");
+
+        Iterator<Producto> it = lista.iterator();
+        while (it.hasNext()) {
+            Producto produ = it.next();
+            Object[] fila = new Object[5];
+            fila[0] = produ.getCodi_prod();
+            fila[1] = produ.getNom_prod();
+            fila[2] = produ.getCategoria_prod();
+            fila[3] = produ.getPrecio_prod();
+            fila[4] = produ.getStock_prod();
+            modelo.addRow(fila);
+        }
+        tbTable.setModel(modelo);
+    }
+}

@@ -1,0 +1,162 @@
+package GUI;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+
+import Clases.Usuario;
+import arrayList.ArrayUsuario;
+
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+
+public class PanelUsuarios extends JPanel {
+
+    private JTextField txtId, txtUsuario, txtClave;
+    private JTable tabla;
+    private DefaultTableModel modelo;
+    private ArrayUsuario dao = new ArrayUsuario();
+
+    public PanelUsuarios() {
+        setLayout(new BorderLayout());
+
+        // Datos
+        JPanel panelDatos = new JPanel(new GridLayout(2, 3, 5, 5));
+        panelDatos.setBorder(BorderFactory.createTitledBorder("Datos del usuario"));
+
+        panelDatos.add(new JLabel("ID:"));
+        panelDatos.add(new JLabel("Usuario:"));
+        panelDatos.add(new JLabel("Clave:"));
+
+        txtId = new JTextField();
+        txtId.setEditable(false); // id autoincrement
+        txtUsuario = new JTextField();
+        txtClave = new JTextField(); // podrías usar JPasswordField
+
+        panelDatos.add(txtId);
+        panelDatos.add(txtUsuario);
+        panelDatos.add(txtClave);
+
+        add(panelDatos, BorderLayout.NORTH);
+
+        // Tabla
+        modelo = new DefaultTableModel(new Object[]{"ID", "Usuario", "Clave"}, 0);
+        tabla = new JTable(modelo);
+        tabla.setAutoCreateRowSorter(true);
+
+        add(new JScrollPane(tabla), BorderLayout.CENTER);
+
+        // Botones
+        JPanel panelBotones = new JPanel();
+        JButton btnNuevo = new JButton("Nuevo");
+        JButton btnGuardar = new JButton("Guardar");
+        JButton btnEditar = new JButton("Editar");
+        JButton btnEliminar = new JButton("Eliminar");
+        JButton btnActualizar = new JButton("Actualizar");
+
+        panelBotones.add(btnNuevo);
+        panelBotones.add(btnGuardar);
+        panelBotones.add(btnEditar);
+        panelBotones.add(btnEliminar);
+        panelBotones.add(btnActualizar);
+
+        add(panelBotones, BorderLayout.SOUTH);
+
+        // Eventos
+        btnNuevo.addActionListener(e -> limpiarCampos());
+        btnGuardar.addActionListener(e -> guardarUsuario());
+        btnEditar.addActionListener(e -> editarUsuario());
+        btnEliminar.addActionListener(e -> eliminarUsuario());
+        btnActualizar.addActionListener(e -> cargarTabla());
+
+        tabla.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int fila = tabla.getSelectedRow();
+                if (fila >= 0) {
+                    txtId.setText(tabla.getValueAt(fila, 0).toString());
+                    txtUsuario.setText(tabla.getValueAt(fila, 1).toString());
+                    txtClave.setText(tabla.getValueAt(fila, 2).toString());
+                }
+            }
+        });
+
+        cargarTabla();
+    }
+
+    private void cargarTabla() {
+        modelo.setRowCount(0);
+        ArrayList<Usuario> lista = dao.listarUsuarios();
+        for (Usuario u : lista) {
+            modelo.addRow(new Object[]{
+                    u.getId(),
+                    u.getUsuario(),
+                    u.getClave()
+            });
+        }
+    }
+
+    private void limpiarCampos() {
+        txtId.setText("");
+        txtUsuario.setText("");
+        txtClave.setText("");
+        txtUsuario.requestFocus();
+    }
+
+    private void guardarUsuario() {
+        String usuario = txtUsuario.getText().trim();
+        String clave = txtClave.getText().trim();
+
+        if (usuario.isEmpty() || clave.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Complete usuario y clave");
+            return;
+        }
+
+        Usuario u = new Usuario(usuario, clave);
+        dao.insertar(u);
+        JOptionPane.showMessageDialog(this, "Usuario registrado");
+        cargarTabla();
+        limpiarCampos();
+    }
+
+    private void editarUsuario() {
+        if (txtId.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Seleccione un usuario de la tabla");
+            return;
+        }
+
+        int id = Integer.parseInt(txtId.getText());
+        String usuario = txtUsuario.getText().trim();
+        String clave = txtClave.getText().trim();
+
+        if (usuario.isEmpty() || clave.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Complete usuario y clave");
+            return;
+        }
+
+        Usuario u = new Usuario(id, usuario, clave);
+        dao.editar(u);
+        JOptionPane.showMessageDialog(this, "Usuario actualizado");
+        cargarTabla();
+    }
+
+    private void eliminarUsuario() {
+        if (txtId.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Seleccione un usuario de la tabla");
+            return;
+        }
+
+        int id = Integer.parseInt(txtId.getText());
+        int r = JOptionPane.showConfirmDialog(this,
+                "¿Eliminar usuario?", "Confirmar",
+                JOptionPane.YES_NO_OPTION);
+
+        if (r == JOptionPane.YES_OPTION) {
+            dao.eliminar(id);
+            JOptionPane.showMessageDialog(this, "Usuario eliminado");
+            cargarTabla();
+            limpiarCampos();
+        }
+    }
+}

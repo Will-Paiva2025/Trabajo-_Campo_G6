@@ -1,0 +1,162 @@
+package GUI;
+
+import java.awt.BorderLayout;
+import java.awt.EventQueue;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+import Conexion.ConexionMySQL;
+
+public class Login extends JFrame {
+
+	private static final long serialVersionUID = 1L;
+	private JPanel contentPanel;
+    private JTextField txtUsuario;
+    private JPasswordField txtPassword;
+    private JLabel lblIntentos;
+    private int intentos = 3;
+
+	/**
+	 * Launch the application.
+	 */
+	
+	/**
+	 * Create the frame.
+	 */
+    public Login() {
+        setTitle("Inicio de Sesión - Sistema de Inventario");
+        setSize(400, 250);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setResizable(false);
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridBagLayout());
+        add(panel);
+
+        // ====== TÍTULO ======
+        JLabel lblTitulo = new JLabel("INICIO DE SESIÓN", JLabel.CENTER);
+        lblTitulo.setFont(new Font("Arial", Font.BOLD, 18));
+
+        GridBagConstraints gbc_lblTitulo = new GridBagConstraints();
+        gbc_lblTitulo.insets = new Insets(10, 10, 10, 10);
+        gbc_lblTitulo.gridx = 0;
+        gbc_lblTitulo.gridy = 0;
+        gbc_lblTitulo.gridwidth = 2;
+        gbc_lblTitulo.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(lblTitulo, gbc_lblTitulo);
+
+        // ====== USUARIO ======
+        JLabel lblUsuario = new JLabel("Usuario:");
+        GridBagConstraints gbc_lblUsuario = new GridBagConstraints();
+        gbc_lblUsuario.insets = new Insets(10, 10, 10, 10);
+        gbc_lblUsuario.gridx = 0;
+        gbc_lblUsuario.gridy = 1;
+        gbc_lblUsuario.anchor = GridBagConstraints.EAST;
+        panel.add(lblUsuario, gbc_lblUsuario);
+
+        txtUsuario = new JTextField();
+        GridBagConstraints gbc_txtUsuario = new GridBagConstraints();
+        gbc_txtUsuario.insets = new Insets(10, 10, 10, 10);
+        gbc_txtUsuario.gridx = 1;
+        gbc_txtUsuario.gridy = 1;
+        gbc_txtUsuario.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(txtUsuario, gbc_txtUsuario);
+
+        // ====== CONTRASEÑA ======
+        JLabel lblPassword = new JLabel("Contraseña:");
+        GridBagConstraints gbc_lblPassword = new GridBagConstraints();
+        gbc_lblPassword.insets = new Insets(10, 10, 10, 10);
+        gbc_lblPassword.gridx = 0;
+        gbc_lblPassword.gridy = 2;
+        gbc_lblPassword.anchor = GridBagConstraints.EAST;
+        panel.add(lblPassword, gbc_lblPassword);
+
+        txtPassword = new JPasswordField();
+        GridBagConstraints gbc_txtPassword = new GridBagConstraints();
+        gbc_txtPassword.insets = new Insets(10, 10, 10, 10);
+        gbc_txtPassword.gridx = 1;
+        gbc_txtPassword.gridy = 2;
+        gbc_txtPassword.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(txtPassword, gbc_txtPassword);
+
+        // ====== INTENTOS ======
+        lblIntentos = new JLabel("Intentos restantes: 3");
+        lblIntentos.setForeground(Color.RED);
+        GridBagConstraints gbc_lblIntentos = new GridBagConstraints();
+        gbc_lblIntentos.insets = new Insets(10, 10, 10, 10);
+        gbc_lblIntentos.gridx = 0;
+        gbc_lblIntentos.gridy = 3;
+        gbc_lblIntentos.gridwidth = 2;
+        gbc_lblIntentos.anchor = GridBagConstraints.CENTER;
+        panel.add(lblIntentos, gbc_lblIntentos);
+
+        // ====== BOTÓN INGRESAR ======
+        JButton btnIngresar = new JButton("Ingresar");
+        GridBagConstraints gbc_btnIngresar = new GridBagConstraints();
+        gbc_btnIngresar.insets = new Insets(10, 10, 10, 10);
+        gbc_btnIngresar.gridx = 0;
+        gbc_btnIngresar.gridy = 4;
+        gbc_btnIngresar.gridwidth = 2;
+        gbc_btnIngresar.anchor = GridBagConstraints.CENTER;
+        panel.add(btnIngresar, gbc_btnIngresar);
+
+        // Eventos
+        btnIngresar.addActionListener(e -> validarLogin());
+        txtPassword.addActionListener(e -> validarLogin());
+    }
+    private void validarLogin() {
+        String usuario = txtUsuario.getText().trim();
+        String clave = String.valueOf(txtPassword.getPassword());
+
+        if (usuario.isEmpty() || clave.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Debe ingresar usuario y contraseña");
+            return;
+        }
+
+        boolean valido = validarUsuarioBD(usuario, clave);
+
+        if (valido) {
+            JOptionPane.showMessageDialog(this, "BIENVENIDO " + usuario.toUpperCase());
+            new MenuPrincipal(usuario).setVisible(true); // 
+            this.dispose();
+        } else {
+            intentos--;
+            lblIntentos.setText("Intentos restantes: " + intentos);
+
+            if (intentos == 0) {
+                JOptionPane.showMessageDialog(this, "Demasiados intentos fallidos");
+                System.exit(0);
+            } else {
+                JOptionPane.showMessageDialog(this, "Usuario o contraseña incorrectos");
+            }
+        }
+    }
+
+    private boolean validarUsuarioBD(String usuario, String clave) {
+        String sql = "SELECT * FROM usuarios WHERE usuario = ? AND clave = ?";
+
+        try (Connection con = ConexionMySQL.getConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, usuario);
+            ps.setString(2, clave);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error de conexión: " + e.getMessage());
+        }
+        return false;
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new Login().setVisible(true));
+    }
+}

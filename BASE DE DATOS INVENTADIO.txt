@@ -1,0 +1,119 @@
+CREATE DATABASE BD_BODEGA_2025;
+USE BD_BODEGA_2025;
+
+CREATE TABLE usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario VARCHAR(50),
+    clave VARCHAR(50)
+);
+INSERT INTO usuarios (usuario, clave)
+VALUES ('admin', '1234');
+
+CREATE TABLE Producto(
+    codi_prod CHAR(5) PRIMARY KEY,
+    nom_prod VARCHAR(50) NOT NULL,
+    categoria_prod VARCHAR(40),
+    precio_prod DOUBLE NOT NULL,
+    stock_prod INT NOT NULL
+);
+CREATE TABLE movimientos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    fecha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    usuario VARCHAR(50) NOT NULL,
+    accion VARCHAR(20) NOT NULL,        
+    codi_prod CHAR(5),
+    nom_prod VARCHAR(50),
+    categoria_prod VARCHAR(40),
+    precio_prod DOUBLE,
+    stock_prod INT
+);
+ALTER TABLE movimientos
+ADD razon VARCHAR(200);
+
+CREATE TABLE boleta_cab (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    fecha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    cliente VARCHAR(100) NOT NULL,
+    usuario VARCHAR(50) NOT NULL,
+    total DOUBLE NOT NULL
+);
+
+CREATE TABLE boleta_det (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_boleta INT NOT NULL,
+    codi_prod CHAR(5) NOT NULL,
+    nom_prod VARCHAR(50) NOT NULL,
+    precio DOUBLE NOT NULL,
+    cantidad INT NOT NULL,
+    subtotal DOUBLE NOT NULL,
+    FOREIGN KEY (id_boleta) REFERENCES boleta_cab(id)
+);
+
+ALTER TABLE boleta_det
+ADD CONSTRAINT fk_boleta_det_producto
+FOREIGN KEY (codi_prod) REFERENCES Producto(codi_prod);
+
+INSERT INTO Producto VALUES ('P0001','ARROZ COSTEÑO','GRANO',3.80,40);
+INSERT INTO Producto VALUES ('P0002','AZÚCAR RUBIA','GRANO',4.00,25);
+INSERT INTO Producto VALUES ('P0003','ACEITE PRIMOR 1L','ACEITES',9.50,15);
+INSERT INTO Producto VALUES ('P0004','LECHE GLORIA','LACTEOS',4.20,35);
+INSERT INTO Producto VALUES ('P0005','ATÚN REAL','ENLATADOS',5.30,20);
+
+
+CREATE PROCEDURE sp_Listar()
+SELECT * FROM Producto;
+
+CALL sp_Listar();
+
+
+CREATE PROCEDURE sp_Insertar(
+    codi CHAR(5),
+    nom VARCHAR(50),
+    cat VARCHAR(40),
+    precio DOUBLE,
+    stock INT
+)
+INSERT INTO Producto VALUES (codi, nom, cat, precio, stock);
+
+CALL sp_Insertar('P0006','FIDEOS DON VITTORIO','PASTAS',4.10,30);
+CALL sp_Listar();
+
+CREATE PROCEDURE sp_Eliminar(
+    codi CHAR(5)
+)
+DELETE FROM Producto WHERE codi_prod = codi;
+
+CALL sp_Eliminar('P0006');
+CALL sp_Listar();
+
+CREATE PROCEDURE sp_Editar(
+    codi CHAR(5),
+    nom VARCHAR(50),
+    cat VARCHAR(40),
+    precio DOUBLE,
+    stock INT
+)
+UPDATE Producto 
+SET nom_prod = nom,
+    categoria_prod = cat,
+    precio_prod = precio,
+    stock_prod = stock
+WHERE codi_prod = codi;
+
+CALL sp_Editar('P0005','ATÚN REAL LOMO','ENLATADOS',6.00,18);
+CALL sp_Listar();
+
+CREATE PROCEDURE sp_ConsultarCod(
+    codi CHAR(5)
+)
+SELECT * FROM Producto WHERE codi_prod = codi;
+
+CALL sp_ConsultarCod('P0003');
+
+CREATE PROCEDURE sp_ConsultarNom(
+    nom VARCHAR(50)
+)
+SELECT * FROM Producto 
+WHERE nom_prod LIKE CONCAT('%', nom, '%');
+
+CALL sp_ConsultarNom('ARROZ');

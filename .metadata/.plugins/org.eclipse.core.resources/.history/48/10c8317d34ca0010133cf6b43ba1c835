@@ -1,0 +1,11 @@
+package Clases;
+
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+public class PanelBuscarNombre extends JPanel{
+	public PanelBuscarNombre() {
+		add(new JLabel("Aquí se buscará por nombre"));
+	}
+
+}

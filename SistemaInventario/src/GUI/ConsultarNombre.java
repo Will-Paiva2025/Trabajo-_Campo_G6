@@ -1,0 +1,93 @@
+package GUI;
+
+
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+
+import Clases.Producto;
+import arrayList.ArrayProducto;
+
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import java.awt.event.KeyListener;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.awt.event.KeyEvent;
+
+public class ConsultarNombre extends JPanel implements KeyListener {
+
+    private static final long serialVersionUID = 1L;
+    private JLabel lblNewLabel;
+    private JTextField txtNombre;
+    private JScrollPane scrollPane;
+    private JTable tbTable;
+
+    public ConsultarNombre() {
+        setBorder(new EmptyBorder(5, 5, 5, 5));
+        setLayout(null);
+
+        lblNewLabel = new JLabel("Nombre");
+        lblNewLabel.setBounds(26, 32, 80, 14);
+        add(lblNewLabel);
+
+        txtNombre = new JTextField();
+        txtNombre.addKeyListener(this);
+        txtNombre.setBounds(102, 29, 200, 20);
+        add(txtNombre);
+        txtNombre.setColumns(10);
+
+        scrollPane = new JScrollPane();
+        scrollPane.setBounds(10, 80, 524, 249);
+        add(scrollPane);
+
+        tbTable = new JTable();
+        tbTable.setFillsViewportHeight(true);
+        scrollPane.setViewportView(tbTable);
+
+        Listar("");
+    }
+
+    public void keyPressed(KeyEvent e) {}
+    public void keyTyped(KeyEvent e) {}
+
+    public void keyReleased(KeyEvent e) {
+        if (e.getSource() == txtNombre) {
+            String nom = txtNombre.getText();
+            Listar(nom);
+        }
+    }
+
+    public void Listar(String nom) {
+        DefaultTableModel modelo = new DefaultTableModel();
+        ArrayProducto p = new ArrayProducto();
+        ArrayList<Producto> lista = new ArrayList<>();
+
+        if (nom.length() == 0) {
+            lista = p.ListarProducto();
+        } else {
+            lista = p.consultarProducto(nom);
+        }
+
+        modelo.addColumn("Código");
+        modelo.addColumn("Nombre");
+        modelo.addColumn("Categoría");
+        modelo.addColumn("Precio");
+        modelo.addColumn("Stock");
+
+        Iterator<Producto> it = lista.iterator();
+        while (it.hasNext()) {
+            Producto produ = it.next();
+            Object[] fila = new Object[5];
+            fila[0] = produ.getCodi_prod();
+            fila[1] = produ.getNom_prod();
+            fila[2] = produ.getCategoria_prod();
+            fila[3] = produ.getPrecio_prod();
+            fila[4] = produ.getStock_prod();
+            modelo.addRow(fila);
+        }
+        tbTable.setModel(modelo);
+    }
+}

@@ -1,0 +1,229 @@
+package GUI;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+
+import Clases.Producto;
+import arrayList.ArrayMovimiento;
+import arrayList.ArrayProducto;
+
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+
+public class PanelInventario extends JPanel {
+
+    private JTextField txtCodigo, txtNombre, txtCategoria, txtPrecio, txtStock, txtMinStock;
+    private JTable tabla;
+    private DefaultTableModel modelo;
+    private ArrayProducto dao = new ArrayProducto();
+    private ArrayMovimiento daoMovimiento = new ArrayMovimiento();
+
+    public PanelInventario() {
+        setLayout(new BorderLayout());
+
+
+        JPanel panelDatos = new JPanel(new GridLayout(2, 5, 5, 5));
+        panelDatos.setBorder(BorderFactory.createTitledBorder("Datos del producto"));
+
+        panelDatos.add(new JLabel("Código:"));
+        panelDatos.add(new JLabel("Nombre:"));
+        panelDatos.add(new JLabel("Categoría:"));
+        panelDatos.add(new JLabel("Precio:"));
+        panelDatos.add(new JLabel("Stock:"));
+
+        txtCodigo = new JTextField();
+        txtNombre = new JTextField();
+        txtCategoria = new JTextField();   
+        txtPrecio = new JTextField();
+        txtStock = new JTextField();
+
+        panelDatos.add(txtCodigo);
+        panelDatos.add(txtNombre);
+        panelDatos.add(txtCategoria);
+        panelDatos.add(txtPrecio);
+        panelDatos.add(txtStock);
+
+        add(panelDatos, BorderLayout.NORTH);
+
+
+        modelo = new DefaultTableModel(new Object[]{"Código", "Nombre", "Categoría", "Precio", "Stock"}, 0);
+        tabla = new JTable(modelo);
+        tabla.setAutoCreateRowSorter(true); 
+
+        add(new JScrollPane(tabla), BorderLayout.CENTER);
+
+
+        JPanel panelBotones = new JPanel();
+
+        JButton btnNuevo = new JButton("Limpiar");
+        JButton btnGuardar = new JButton("Insertar");
+        JButton btnEditar = new JButton("Editar");
+        JButton btnEliminar = new JButton("Eliminar");
+        JButton btnActualizar = new JButton("Actualizar");
+
+        JLabel lblMinStock = new JLabel("Stock <= ");
+        txtMinStock = new JTextField("10", 3); 
+        JButton btnStockBajo = new JButton("Ver stock bajo");
+
+        panelBotones.add(btnNuevo);
+        panelBotones.add(btnGuardar);
+        panelBotones.add(btnEditar);
+        panelBotones.add(btnEliminar);
+        panelBotones.add(btnActualizar);
+        panelBotones.add(Box.createHorizontalStrut(15));
+        panelBotones.add(lblMinStock);
+        panelBotones.add(txtMinStock);
+        panelBotones.add(btnStockBajo);
+
+        add(panelBotones, BorderLayout.SOUTH);
+
+
+        btnNuevo.addActionListener(e -> limpiarCampos());
+        btnGuardar.addActionListener(e -> registrarProducto());
+        btnEditar.addActionListener(e -> editarProducto());
+        btnEliminar.addActionListener(e -> eliminarProducto());
+        btnActualizar.addActionListener(e -> cargarTabla());
+        btnStockBajo.addActionListener(e -> mostrarStockBajo());
+
+        tabla.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int fila = tabla.getSelectedRow();
+                if (fila >= 0) {
+                    txtCodigo.setText(tabla.getValueAt(fila, 0).toString());
+                    txtNombre.setText(tabla.getValueAt(fila, 1).toString());
+                    txtCategoria.setText(tabla.getValueAt(fila, 2).toString());
+                    txtPrecio.setText(tabla.getValueAt(fila, 3).toString());
+                    txtStock.setText(tabla.getValueAt(fila, 4).toString());
+                }
+            }
+        });
+        cargarTabla();
+    }
+
+    private void cargarTabla() {
+        modelo.setRowCount(0);
+        ArrayList<Producto> lista = dao.ListarProducto();
+        for (Producto p : lista) {
+            modelo.addRow(new Object[]{
+                    p.getCodi_prod(),
+                    p.getNom_prod(),
+                    p.getCategoria_prod(),
+                    p.getPrecio_prod(),
+                    p.getStock_prod()
+            });
+        }
+    }
+
+    private void mostrarStockBajo() {
+        int minimo;
+        try {
+            minimo = Integer.parseInt(txtMinStock.getText().trim());
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Ingresa un número válido para el stock mínimo");
+            return;
+        }
+
+        modelo.setRowCount(0);
+        ArrayList<Producto> lista = dao.listarStockBajo(minimo);
+        for (Producto p : lista) {
+            modelo.addRow(new Object[]{
+                    p.getCodi_prod(),
+                    p.getNom_prod(),
+                    p.getCategoria_prod(),
+                    p.getPrecio_prod(),
+                    p.getStock_prod()
+            });
+        }
+    }
+
+    private void limpiarCampos() {
+        txtCodigo.setText("");
+        txtNombre.setText("");
+        txtCategoria.setText("");
+        txtPrecio.setText("");
+        txtStock.setText("");
+        txtCodigo.requestFocus();
+    }
+
+    private void registrarProducto() {
+        String cod = txtCodigo.getText().trim();
+        String nom = txtNombre.getText().trim();
+        String cat = txtCategoria.getText().trim();
+        String preStr = txtPrecio.getText().trim();
+        String stockStr = txtStock.getText().trim();
+
+        if (cod.isEmpty() || nom.isEmpty() || cat.isEmpty() || preStr.isEmpty() || stockStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Complete todos los campos");
+            return;
+        }
+
+        try {
+            double precio = Double.parseDouble(preStr);
+            int stock = Integer.parseInt(stockStr);
+
+            Producto p = new Producto(cod, nom, cat, precio, stock);
+            dao.Insertar(p);
+            JOptionPane.showMessageDialog(this, "Producto registrado correctamente");
+            cargarTabla();
+            limpiarCampos();
+
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Precio o stock no válidos");
+        }
+    }
+
+    private void editarProducto() {
+        int fila = tabla.getSelectedRow();
+        if (fila < 0) {
+            JOptionPane.showMessageDialog(this, "Seleccione un producto de la tabla");
+            return;
+        }
+
+        String cod = txtCodigo.getText().trim();
+        String nom = txtNombre.getText().trim();
+        String cat = txtCategoria.getText().trim();
+        String preStr = txtPrecio.getText().trim();
+        String stockStr = txtStock.getText().trim();
+
+        if (cod.isEmpty() || nom.isEmpty() || cat.isEmpty() || preStr.isEmpty() || stockStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Complete todos los campos");
+            return;
+        }
+
+        try {
+            double precio = Double.parseDouble(preStr);
+            int stock = Integer.parseInt(stockStr);
+
+            Producto p = new Producto(cod, nom, cat, precio, stock);
+            dao.Editar(p);
+            JOptionPane.showMessageDialog(this, "Producto actualizado correctamente");
+            cargarTabla();
+
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Precio o stock no válidos");
+        }
+    }
+
+    private void eliminarProducto() {
+        int fila = tabla.getSelectedRow();
+        if (fila < 0) {
+            JOptionPane.showMessageDialog(this, "Seleccione un producto de la tabla");
+            return;
+        }
+
+        String cod = tabla.getValueAt(fila, 0).toString();
+        int r = JOptionPane.showConfirmDialog(this,
+                "¿Eliminar producto " + cod + "?", "Confirmar",
+                JOptionPane.YES_NO_OPTION);
+
+        if (r == JOptionPane.YES_OPTION) {
+            dao.Eliminar(cod);
+            JOptionPane.showMessageDialog(this, "Producto eliminado");
+            cargarTabla();
+            limpiarCampos();
+        }
+    }
+}

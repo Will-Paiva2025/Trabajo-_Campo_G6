@@ -1,0 +1,101 @@
+package GUI;
+
+import java.awt.EventQueue;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JButton;
+
+public class VerInventario extends JFrame {
+
+	private static final long serialVersionUID = 1L;
+	private JPanel contentPane;
+	private JScrollPane scrollPane;
+	private JTable tblProductos;
+	private JButton btnCargar;
+	private JButton btnCerrar;
+
+	/**
+	 * Launch the application.
+	 */
+
+	/**
+	 * Create the frame.
+	 */
+	public VerInventario() {
+		setTitle("Ver Inventario");
+        setSize(700, 400);
+        setLocationRelativeTo(null);
+        setLayout(null);
+
+        // Tabla
+        tblProductos = new JTable();
+        scrollPane = new JScrollPane(tblProductos);
+        scrollPane.setBounds(20, 20, 650, 280);
+        add(scrollPane);
+
+        // Botón cargar
+        btnCargar = new JButton("Cargar Inventario");
+        btnCargar.setBounds(20, 320, 180, 30);
+        add(btnCargar);
+
+        // Botón cerrar
+        btnCerrar = new JButton("Cerrar");
+        btnCerrar.setBounds(220, 320, 100, 30);
+        add(btnCerrar);
+
+        // Acción del botón cargar
+        btnCargar.addActionListener(e -> cargarProductos());
+
+        // Acción cerrar
+        btnCerrar.addActionListener(e -> dispose());
+
+	}
+	 private void cargarProductos() {
+	        DefaultTableModel modelo = new DefaultTableModel();
+	        modelo.addColumn("ID");
+	        modelo.addColumn("Nombre");
+	        modelo.addColumn("Código");
+	        modelo.addColumn("Precio");
+	        modelo.addColumn("Stock");
+
+	        try {
+	            Connection cn = DriverManager.getConnection(
+	                "jdbc:mysql://localhost/bodega",
+	                "root",
+	                ""
+	            );
+
+	            CallableStatement cst = cn.prepareCall("{CALL listar_productos()}");
+	            ResultSet rs = cst.executeQuery();
+
+	            while (rs.next()) {
+	                modelo.addRow(new Object[]{
+	                    rs.getInt("id"),
+	                    rs.getString("nombre"),
+	                    rs.getString("codigo"),
+	                    rs.getDouble("precio"),
+	                    rs.getInt("stock")
+	                });
+	            }
+
+	            tblProductos.setModel(modelo);
+
+	        } catch (Exception ex) {
+	            JOptionPane.showMessageDialog(null,
+	                    "Error al conectar o cargar los datos:\n" + ex.getMessage());
+	        }
+	    }
+	    public static void main(String[] args) {
+	        new VerInventario().setVisible(true);
+	    }
+}

@@ -1,0 +1,68 @@
+package GUI;
+
+import javax.swing.*;
+import java.awt.*;
+import javax.swing.JFrame;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+
+public class MenuPrincipal extends JFrame {
+
+	private static final long serialVersionUID = 1L;
+	private String usuario;
+
+	
+	 public MenuPrincipal(String usuario) {
+		 this.usuario = usuario;
+
+	        setTitle("Sistema de Inventario - Bodega");
+	        setSize(800, 600);
+	        setLocationRelativeTo(null);
+	        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	        setResizable(false);
+	        setLayout(new BorderLayout());
+
+	        // Barra superior con el usuario logueado
+	        JLabel lblUsuario = new JLabel("Usuario: " + usuario);
+	        lblUsuario.setHorizontalAlignment(SwingConstants.RIGHT);
+	        lblUsuario.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+	        add(lblUsuario, BorderLayout.NORTH);
+
+	        // Pestañas
+	        JTabbedPane tabs = new JTabbedPane();
+	        PanelInventario panelInventario = new PanelInventario(usuario);
+	        ConsultarNombre panelConsultaNombre = new ConsultarNombre();
+	        ConsultarCategoria panelConsultaCategoria = new ConsultarCategoria();
+	        PanelHistorial panelHistorial = new PanelHistorial(usuario);
+	        PanelBoleta panelBoleta = new PanelBoleta(usuario);
+
+	        tabs.addTab("Inventario", panelInventario);
+	        tabs.addTab("Boletas", panelBoleta); 
+	        tabs.addTab("Consultar por nombre", panelConsultaNombre);
+	        tabs.addTab("Consultar por categoría", panelConsultaCategoria);
+	        tabs.addTab("Historial", panelHistorial);
+
+	        // Solo el admin ve la pestaña de usuarios
+	        if (usuario.equalsIgnoreCase("admin")) {
+	            tabs.addTab("Usuarios", new PanelUsuarios());
+	        }
+	        
+	        tabs.addChangeListener(new ChangeListener() {
+	            @Override
+	            public void stateChanged(ChangeEvent e) {
+	                if (tabs.getSelectedComponent() == panelConsultaCategoria) {
+	                    panelConsultaCategoria.recargar();
+	                } else if (tabs.getSelectedComponent() == panelHistorial) {
+	                    panelHistorial.recargar();
+	                }
+	            }
+	        });
+
+	        add(tabs, BorderLayout.CENTER);
+	    }
+
+	    public static void main(String[] args) {
+	        SwingUtilities.invokeLater(() -> new MenuPrincipal("admin").setVisible(true));
+	    }
+	}

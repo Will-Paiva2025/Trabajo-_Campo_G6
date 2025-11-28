@@ -1,0 +1,85 @@
+package arrayList;
+
+import java.sql.*;
+import java.util.ArrayList;
+
+import Clases.DetalleBoleta;
+import Conexion.ConexionMySQL;
+
+public class ArrayBoleta {
+
+    // Registra cabecera + detalle de la boleta y descuenta stock
+    // Retorna el ID de la boleta generada o -1 si falló.
+    public int registrarBoleta(String cliente, String usuario, ArrayList<DetalleBoleta> detalles) {
+        if (detalles == null || detalles.isEmpty()) {
+            return -1;
+        }
+
+        int idBoleta = -1;
+
+        // Calcular total
+        double total = 0;
+        for (DetalleBoleta d : detalles) {
+            total += d.getSubtotal();
+        }
+
+        try {
+            Connection cnx = ConexionMySQL.getConexion();
+
+            // --- Insertar cabecera ---
+            String sqlCab = "INSERT INTO boleta_cab(cliente, usuario, total) VALUES (?,?,?)";
+            PreparedStatement psCab = cnx.prepareStatement(sqlCab, Statement.RETURN_GENERATED_KEYS);
+            psCab.setString(1, cliente);
+            psCab.setString(2, usuario);
+            psCab.setDouble(3, total);
+            psCab.executeUpdate();
+
+            ResultSet rs = psCab.getGeneratedKeys();
+            if (rs.next()) {
+                idBoleta = rs.getInt(1);
+            }
+            rs.close();
+            psCab.close();
+
+            if (idBoleta <= 0) {
+                return -1;
+            }
+
+            // --- Insertar detalle ---
+            String sqlDet = "INSERT INTO boleta_det(id_boleta, codi_prod, nom_prod, precio, cantidad, subtotal) " +
+                            "VALUES (?,?,?,?,?,?)";
+            PreparedStatement psDet = cnx.prepareStatement(sqlDet);
+
+            // --- Actualizar stock ---
+            String sqlUpd = "UPDATE Producto SET stock_prod = stock_prod - ? WHERE codi_prod = ?";
+            PreparedStatement psUpd = cnx.prepareStatement(sqlUpd);
+
+            for (DetalleBoleta d : detalles) {
+                // detalle
+                psDet.setInt(1, idBoleta);
+                psDet.setString(2, d.getCodiProd());
+                psDet.setString(3, d.getNomProd());
+                psDet.setDouble(4, d.getPrecio());
+                psDet.setInt(5, d.getCantidad());
+                psDet.setDouble(6, d.getSubtotal());
+                psDet.addBatch();
+
+                // stock
+                psUpd.setInt(1, d.getCantidad());
+                psUpd.setString(2, d.getCodiProd());
+                psUpd.addBatch();
+            }
+
+            psDet.executeBatch();
+            psUpd.executeBatch();
+
+            psDet.close();
+            psUpd.close();
+
+        } catch (Exception e) {
+            System.out.println("ERROR registrarBoleta: " + e);
+        }
+
+        return idBoleta;
+    }
+}

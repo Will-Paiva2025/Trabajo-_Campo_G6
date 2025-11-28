@@ -1,0 +1,58 @@
+package GUI;
+
+import java.awt.EventQueue;
+import javax.swing.*;
+import java.awt.*;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+
+
+
+
+public class MenuPrincipal extends JFrame {
+
+	private static final long serialVersionUID = 1L;
+	private JPanel contentPane;
+	private String usuario;
+
+	
+	 public MenuPrincipal(String usuario) {
+	        this.usuario = usuario;
+
+	        setTitle("Sistema de Inventario - Bodega");
+	        setSize(800, 600);
+	        setLocationRelativeTo(null);
+	        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	        setResizable(false);
+	        setLayout(new BorderLayout());
+
+	        // Barra superior con el usuario logueado
+	        JLabel lblUsuario = new JLabel("Usuario: " + usuario);
+	        lblUsuario.setHorizontalAlignment(SwingConstants.RIGHT);
+	        lblUsuario.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+	        add(lblUsuario, BorderLayout.NORTH);
+
+	        // Pestañas
+	        JTabbedPane tabs = new JTabbedPane();
+
+	        // Panel Inventario (luego aquí ponemos JTable + botones)
+	        JPanel panelInventario = new JPanel();
+	        tabs.addTab("Inventario", new PanelInventario());
+
+	        // Panel Consulta por nombre (puedes integrar tu clase ConsultarNombre)
+	        JPanel panelConsultaNombre = new JPanel();
+	        tabs.addTab("Consultar por nombre", new ConsultarNombre());
+
+	        tabs.addTab("Consultar por categoría", new ConsultarCategoria());
+	        // Agregar pestañas
+	        tabs.addTab("Prueba", panelInventario);
+	        panelInventario.add(new JLabel("Prueba"));
+
+	        add(tabs, BorderLayout.CENTER);
+	    }
+
+	    public static void main(String[] args) {
+	        SwingUtilities.invokeLater(() -> new MenuPrincipal("admin").setVisible(true));
+	    }
+	}

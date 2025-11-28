@@ -1,0 +1,127 @@
+package GUI;
+
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+
+import Clases.Producto;
+import arrayList.ArrayProducto;
+
+import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+
+public class DialogSeleccionProducto extends JDialog {
+
+    private static final long serialVersionUID = 1L;
+
+    private JTextField txtBuscar;
+    private JTable tabla;
+    private DefaultTableModel modelo;
+    private ArrayProducto dao = new ArrayProducto();
+    private ArrayList<Producto> listaActual = new ArrayList<>();
+
+    private Producto productoSeleccionado = null;
+
+    public DialogSeleccionProducto(Frame owner) {
+        super(owner, "Seleccionar producto", true); // modal
+        setSize(600, 400);
+        setLocationRelativeTo(owner);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+
+        JPanel content = new JPanel(new BorderLayout());
+        content.setBorder(new EmptyBorder(10, 10, 10, 10));
+        setContentPane(content);
+
+        // Panel de búsqueda
+        JPanel panelBusqueda = new JPanel(new BorderLayout());
+        panelBusqueda.add(new JLabel("Buscar por nombre: "), BorderLayout.WEST);
+        txtBuscar = new JTextField();
+        panelBusqueda.add(txtBuscar, BorderLayout.CENTER);
+        content.add(panelBusqueda, BorderLayout.NORTH);
+
+        // Tabla
+        modelo = new DefaultTableModel(
+                new Object[]{"Código", "Nombre", "Categoría", "Precio", "Stock"}, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        tabla = new JTable(modelo);
+        tabla.setFillsViewportHeight(true);
+        tabla.setAutoCreateRowSorter(true);
+
+        JScrollPane scroll = new JScrollPane(tabla);
+        content.add(scroll, BorderLayout.CENTER);
+
+        // Panel botones
+        JPanel panelBotones = new JPanel();
+        JButton btnSeleccionar = new JButton("Seleccionar");
+        JButton btnCancelar = new JButton("Cancelar");
+        panelBotones.add(btnSeleccionar);
+        panelBotones.add(btnCancelar);
+        content.add(panelBotones, BorderLayout.SOUTH);
+
+        // Eventos
+        txtBuscar.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                listar(txtBuscar.getText().trim());
+            }
+        });
+
+        btnSeleccionar.addActionListener(e -> seleccionar());
+        btnCancelar.addActionListener(e -> dispose());
+
+        tabla.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    seleccionar();
+                }
+            }
+        });
+
+        // Cargar todo al inicio
+        listar("");
+    }
+
+    private void listar(String filtroNombre) {
+        modelo.setRowCount(0);
+        if (filtroNombre.isEmpty()) {
+            listaActual = dao.ListarProducto();
+        } else {
+            listaActual = dao.consultarProducto(filtroNombre);
+        }
+
+        for (Producto p : listaActual) {
+            modelo.addRow(new Object[]{
+                    p.getCodi_prod(),
+                    p.getNom_prod(),
+                    p.getCategoria_prod(),
+                    p.getPrecio_prod(),
+                    p.getStock_prod()
+            });
+        }
+    }
+
+    private void seleccionar() {
+        int filaVista = tabla.getSelectedRow();
+        if (filaVista < 0) {
+            JOptionPane.showMessageDialog(this, "Seleccione un producto de la tabla");
+            return;
+        }
+        int fila = tabla.convertRowIndexToModel(filaVista);
+        productoSeleccionado = listaActual.get(fila);
+        dispose();
+    }
+
+    public Producto getProductoSeleccionado() {
+        return productoSeleccionado;
+    }
+}

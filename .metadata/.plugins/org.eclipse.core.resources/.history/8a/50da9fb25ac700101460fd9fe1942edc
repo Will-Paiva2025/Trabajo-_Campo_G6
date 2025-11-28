@@ -1,0 +1,95 @@
+package arrayList;
+
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+
+import Clases.Producto;
+import Conexion.ConexionMySQL;
+
+public class ArrayProducto {
+	public ArrayList<Producto> ListarProducto(){
+		ArrayList<Producto> lista=new ArrayList<Producto>();
+		try {
+			CallableStatement csta=ConexionMySQL.getConexion().prepareCall("{call sp_Listar()}");
+			ResultSet rs=csta.executeQuery();
+			Producto produ;
+			while (rs.next()) {
+				produ=new Producto(rs.getString(1), rs.getString(2),rs.getString(3),rs.getDouble(4),rs.getInt(5));
+				lista.add(produ);
+			}
+		} catch (Exception e) {		
+		}
+		return lista;
+	}
+	public ArrayList<Producto> ConsultarCod(String cod){
+		ArrayList<Producto> lista=new ArrayList<Producto>();
+		try {
+			Connection cnx=ConexionMySQL.getConexion();
+			CallableStatement csta=cnx.prepareCall("{call sp_ConsultarCod(?)}");
+			csta.setString(1, cod);
+			ResultSet rs=csta.executeQuery();
+			Producto produ;
+			while(rs.next()) {
+				produ=new Producto(rs.getString(1), rs.getString(2),rs.getString(3),rs.getDouble(4), rs.getInt(5));
+				lista.add(produ);
+			}
+		} catch (Exception e) {
+		}
+		return lista;
+	}
+	public ArrayList<Producto> consultarProducto(String nom){
+		ArrayList<Producto> lista=new ArrayList<Producto>();
+		try {
+			java.sql.Statement sta=ConexionMySQL.getConexion().createStatement();
+			ResultSet rs=sta.executeQuery("select * from accesorio  where nom_acce like '%"+nom+"%'");
+			Producto produ;
+			while(rs.next()) {
+				produ=new Producto(rs.getString(1), rs.getString(2),rs.getString(3),rs.getDouble(4), rs.getInt(5));
+				lista.add(produ);
+			}
+		} catch (Exception e) {
+			
+		}
+		return lista;
+	}
+	public void Insertar(Producto produ) {
+		try {
+			Connection cnx=ConexionMySQL.getConexion();
+			CallableStatement csta=cnx.prepareCall("{call sp_Insertar(?,?,?,?,?)}");
+			csta.setString(1, produ.getCodi_prod());
+			csta.setString(2, produ.getNom_prod());
+			csta.setString(3, produ.getCodi_prod());
+			csta.setDouble(4, produ.getPrecio_prod());
+			csta.setInt(5, produ.getStock_prod());
+			csta.executeUpdate();
+			} catch (Exception e) {
+			System.out.println("ERROR "+e);
+		}
+	}
+	public void Eliminar(String cod) {
+		try {
+			Connection cnx=ConexionMySQL.getConexion();
+			CallableStatement csta=cnx.prepareCall("{call sp_Eliminar(?)}");
+			csta.setString(1, cod);
+			csta.executeUpdate();
+		} catch (Exception e) {
+			System.out.println("ERROR "+e);
+		}
+	}
+	public void Editar(Producto produ) {
+		try {
+			Connection cnx=ConexionMySQL.getConexion();
+			CallableStatement csta=cnx.prepareCall("{call sp_Editar(?,?,?,?,?)}");
+			csta.setString(1, produ.getCodi_prod());
+			csta.setString(2, produ.getNom_prod());
+			csta.setString(3, produ.getCodi_prod());
+			csta.setDouble(4, produ.getPrecio_prod());
+			csta.setInt(5, produ.getStock_prod());
+			csta.executeUpdate();
+		} catch (Exception e) {
+			System.out.println("ERROR "+e);
+		}
+}
+}

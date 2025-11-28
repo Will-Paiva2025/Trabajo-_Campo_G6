@@ -1,0 +1,11 @@
+package Clases;
+
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+public class PanelModificar extends JPanel{
+	public PanelModificar() {
+		add(new JLabel("Aquí se modifican productos"));
+	}
+
+}

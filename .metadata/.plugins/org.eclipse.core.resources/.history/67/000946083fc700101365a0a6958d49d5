@@ -1,0 +1,10 @@
+package GUI;
+
+import javax.swing.JLabel;
+
+public class PanelModificar {
+	public PanelModificar() {
+		add(new JLabel("Aquí se modifican productos"));
+	}
+
+}

@@ -1,0 +1,94 @@
+package GUI;
+
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+
+import Clases.Producto;
+import arrayList.ArrayProducto;
+
+import java.awt.event.KeyListener;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.awt.event.KeyEvent;
+
+public class ConsultarCategoria extends JPanel {
+
+    private static final long serialVersionUID = 1L;
+    private JComboBox<String> cboCategoria;
+    private JTable tbTable;
+    private DefaultTableModel modelo;
+    private ArrayProducto dao = new ArrayProducto();
+
+    public ConsultarCategoria() {
+        setBorder(new EmptyBorder(5, 5, 5, 5));
+        setLayout(new BorderLayout());
+
+        // ----- Panel superior: etiqueta + combo -----
+        JPanel panelTop = new JPanel();
+        JLabel lblCategoria = new JLabel("Categoría: ");
+        cboCategoria = new JComboBox<>();
+
+        panelTop.add(lblCategoria);
+        panelTop.add(cboCategoria);
+        add(panelTop, BorderLayout.NORTH);
+
+        // ----- Tabla -----
+        modelo = new DefaultTableModel();
+        modelo.addColumn("Código");
+        modelo.addColumn("Nombre");
+        modelo.addColumn("Categoría");
+        modelo.addColumn("Precio");
+        modelo.addColumn("Stock");
+
+        tbTable = new JTable(modelo);
+        tbTable.setFillsViewportHeight(true);
+        tbTable.setAutoCreateRowSorter(true);
+
+        JScrollPane scrollPane = new JScrollPane(tbTable);
+        add(scrollPane, BorderLayout.CENTER);
+
+        // Cargar categorías en el combo
+        cargarCategorias();
+
+        // Evento: cuando cambie la categoría seleccionada, actualizamos la tabla
+        cboCategoria.addActionListener(e -> actualizarTabla());
+
+        // Listar todo inicialmente
+        actualizarTabla();
+    }
+
+    private void cargarCategorias() {
+        cboCategoria.removeAllItems();
+        cboCategoria.addItem("Todas"); // opción para ver todo
+
+        ArrayList<String> categorias = dao.listarCategorias();
+        for (String c : categorias) {
+            cboCategoria.addItem(c);
+        }
+    }
+
+    private void actualizarTabla() {
+        String seleccion = (String) cboCategoria.getSelectedItem();
+        if (seleccion == null) return;
+
+        ArrayList<Producto> lista;
+
+        if (seleccion.equals("Todas")) {
+            lista = dao.ListarProducto();
+        } else {
+            lista = dao.consultarCategoria(seleccion);
+        }
+
+        modelo.setRowCount(0); // limpiar
+        for (Producto produ : lista) {
+            modelo.addRow(new Object[]{
+                    produ.getCodi_prod(),
+                    produ.getNom_prod(),
+                    produ.getCategoria_prod(),
+                    produ.getPrecio_prod(),
+                    produ.getStock_prod()
+            });
+        }
+    }
+}

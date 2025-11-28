@@ -1,0 +1,51 @@
+package GUI;
+
+import javax.swing.*;
+import java.awt.*;
+import javax.swing.JFrame;
+
+
+public class MenuPrincipal extends JFrame {
+
+	private static final long serialVersionUID = 1L;
+	private String usuario;
+
+	
+	 public MenuPrincipal(String usuario) {
+		 this.usuario = usuario;
+
+	        setTitle("Sistema de Inventario - Bodega");
+	        setSize(800, 600);
+	        setLocationRelativeTo(null);
+	        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	        setResizable(false);
+	        setLayout(new BorderLayout());
+
+	        // Barra superior con el usuario logueado
+	        JLabel lblUsuario = new JLabel("Usuario: " + usuario);
+	        lblUsuario.setHorizontalAlignment(SwingConstants.RIGHT);
+	        lblUsuario.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+	        add(lblUsuario, BorderLayout.NORTH);
+
+	        // Pestañas
+	        JTabbedPane tabs = new JTabbedPane();
+	        PanelInventario panelInventario = new PanelInventario();
+	        ConsultarNombre panelConsultaNombre = new ConsultarNombre();
+	        ConsultarCategoria panelConsultaCategoria = new ConsultarCategoria();
+
+	        tabs.addTab("Inventario", panelInventario);
+	        tabs.addTab("Consultar por nombre", panelConsultaNombre);
+	        tabs.addTab("Consultar por categoría", panelConsultaCategoria);
+
+	        // Solo el admin ve la pestaña de usuarios
+	        if (usuario.equalsIgnoreCase("admin")) {
+	            tabs.addTab("Usuarios", new PanelUsuarios());
+	        }
+
+	        add(tabs, BorderLayout.CENTER);
+	    }
+
+	    public static void main(String[] args) {
+	        SwingUtilities.invokeLater(() -> new MenuPrincipal("admin").setVisible(true));
+	    }
+	}

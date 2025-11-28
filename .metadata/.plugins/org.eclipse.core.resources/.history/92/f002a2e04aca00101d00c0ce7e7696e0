@@ -1,0 +1,60 @@
+package GUI;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+
+import Clases.Movimiento;
+import arrayList.ArrayMovimiento;
+
+import java.awt.*;
+import java.util.ArrayList;
+
+public class PanelHistorial extends JPanel {
+
+    private JTable tabla;
+    private DefaultTableModel modelo;
+    private ArrayMovimiento dao = new ArrayMovimiento();
+
+    public PanelHistorial() {
+        setLayout(new BorderLayout());
+
+        modelo = new DefaultTableModel(
+                new Object[]{"ID", "Fecha", "Usuario", "Acción", "Código", "Nombre", "Categoría", "Precio", "Stock"}, 0);
+
+        tabla = new JTable(modelo);
+        tabla.setAutoCreateRowSorter(true);
+
+        add(new JScrollPane(tabla), BorderLayout.CENTER);
+
+        JButton btnActualizar = new JButton("Actualizar");
+        btnActualizar.addActionListener(e -> cargarTabla());
+
+        JPanel sur = new JPanel();
+        sur.add(btnActualizar);
+        add(sur, BorderLayout.SOUTH);
+
+        cargarTabla();
+    }
+
+    private void cargarTabla() {
+        modelo.setRowCount(0);
+        ArrayList<Movimiento> lista = dao.listarMovimientos();
+        for (Movimiento m : lista) {
+            modelo.addRow(new Object[]{
+                    m.getId(),
+                    m.getFecha(),
+                    m.getUsuario(),
+                    m.getAccion(),
+                    m.getCodiProd(),
+                    m.getNomProd(),
+                    m.getCategoriaProd(),
+                    m.getPrecioProd(),
+                    m.getStockProd()
+            });
+        }
+    }
+
+    public void recargar() {
+        cargarTabla();
+    }
+}

@@ -1,0 +1,10 @@
+package Clases;
+
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+public class PanelInventario extends JPanel{
+   public PanelInventario() {
+	   add(new JLabel("Aquí se mostrará el inventario"));
+   }
+}

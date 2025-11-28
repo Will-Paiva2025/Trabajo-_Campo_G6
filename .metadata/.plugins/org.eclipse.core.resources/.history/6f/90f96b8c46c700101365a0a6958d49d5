@@ -1,0 +1,68 @@
+package Clases;
+
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
+
+public class PanelInventario extends JPanel{
+	   private JTable tabla;
+	    private DefaultTableModel modelo;
+	public PanelInventario() {
+		setLayout(null);
+
+        modelo = new DefaultTableModel();
+        modelo.addColumn("ID");
+        modelo.addColumn("Nombre");
+        modelo.addColumn("Código");
+        modelo.addColumn("Precio");
+        modelo.addColumn("Stock");
+
+        tabla = new JTable(modelo);
+        JScrollPane scroll = new JScrollPane(tabla);
+        scroll.setBounds(20, 20, 600, 300);
+        add(scroll);
+
+        JButton btnCargar = new JButton("Cargar Datos");
+        btnCargar.setBounds(20, 330, 150, 30);
+        add(btnCargar);
+
+        btnCargar.addActionListener(e -> cargarDatos());
+   }
+	private void cargarDatos() {
+        modelo.setRowCount(0);
+
+        try {
+            Connection con = DriverManager.getConnection(
+                "jdbc:mysql://localhost/BD_BODEGA_2025",
+                "root",
+                "TheBoss9933#"
+            );
+
+            CallableStatement call = con.prepareCall("{ CALL listar_productos() }");
+            ResultSet rs = call.executeQuery();
+
+            while (rs.next()) {
+                modelo.addRow(new Object[]{
+                    rs.getInt("id"),
+                    rs.getString("nombre"),
+                    rs.getString("codigo"),
+                    rs.getDouble("precio"),
+                    rs.getInt("stock")
+                });
+            }
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
+                    "Error al cargar datos: " + e.getMessage());
+        }
+    }
+}

@@ -1,0 +1,98 @@
+package GUI;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+
+import Clases.Movimiento;
+import arrayList.ArrayMovimiento;
+
+import java.awt.*;
+import java.util.ArrayList;
+
+public class PanelHistorial extends JPanel {
+
+    private JTable tabla;
+    private DefaultTableModel modelo;
+    private ArrayMovimiento dao = new ArrayMovimiento();
+    private String usuarioLogueado;
+    private JButton btnEliminar; 
+
+    public PanelHistorial(String usuarioLogueado) {
+        this.usuarioLogueado = usuarioLogueado;
+
+        setLayout(new BorderLayout());
+
+        modelo = new DefaultTableModel(
+                new Object[]{"ID", "Fecha", "Usuario", "Acción","Razón", "Código", "Nombre", "Categoría", "Precio", "Stock"}, 0);
+
+        tabla = new JTable(modelo);
+        tabla.setAutoCreateRowSorter(true);
+
+        add(new JScrollPane(tabla), BorderLayout.CENTER);
+
+        JPanel sur = new JPanel();
+
+        JButton btnActualizar = new JButton("Actualizar");
+        btnActualizar.addActionListener(e -> cargarTabla());
+        sur.add(btnActualizar);
+
+        // 🔹 Botón eliminar (solo admin)
+        btnEliminar = new JButton("Eliminar registro");
+        btnEliminar.addActionListener(e -> eliminarRegistroSeleccionado());
+
+        if (usuarioLogueado.equalsIgnoreCase("admin")) {
+            sur.add(btnEliminar);   
+        }
+
+        add(sur, BorderLayout.SOUTH);
+
+        cargarTabla();
+    }
+
+    private void cargarTabla() {
+        modelo.setRowCount(0);
+        ArrayList<Movimiento> lista = dao.listarMovimientos();
+        for (Movimiento m : lista) {
+            modelo.addRow(new Object[]{
+                    m.getId(),
+                    m.getFecha(),
+                    m.getUsuario(),
+                    m.getAccion(),
+                    m.getRazon(),  
+                    m.getCodiProd(),
+                    m.getNomProd(),
+                    m.getCategoriaProd(),
+                    m.getPrecioProd(),
+                    m.getStockProd()
+            });
+        }
+    }
+
+    private void eliminarRegistroSeleccionado() {
+        int filaVista = tabla.getSelectedRow();
+        if (filaVista < 0) {
+            JOptionPane.showMessageDialog(this, "Selecciona un registro de la tabla");
+            return;
+        }
+
+        int fila = tabla.convertRowIndexToModel(filaVista);
+        int id = (int) modelo.getValueAt(fila, 0);
+
+        int r = JOptionPane.showConfirmDialog(
+                this,
+                "¿Eliminar el registro de historial con ID " + id + "?",
+                "Confirmar",
+                JOptionPane.YES_NO_OPTION);
+
+        if (r == JOptionPane.YES_OPTION) {
+            dao.eliminarMovimiento(id);
+            JOptionPane.showMessageDialog(this, "Registro eliminado del historial");
+            cargarTabla();
+        }
+    }
+
+
+    public void recargar() {
+        cargarTabla();
+    }
+}
